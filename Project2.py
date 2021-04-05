@@ -158,6 +158,7 @@ def write_csv(data, filename):
 
 
 def extra_credit(filepath):
+
     """
     EXTRA CREDIT
 
