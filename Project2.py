@@ -5,8 +5,29 @@ import os
 import csv
 import unittest
 
+# By: Tiara Amadia & Anthony Ho // Nina Yang
+
 
 def get_titles_from_search_results(filename):
+
+    source_dir = os.path.dirname(__file__)
+    fullpath = os.path.join(source_dir, filename) 
+    infile = open(fullpath, 'r', encoding="UTF-8")
+    soup = BeautifulSoup(infile, "html.parser")
+    infile.close()
+
+    list_tuple = []
+    rows = soup.find_all("tr", itemtype="http://schema.org/Book")
+
+    for row in rows: 
+        each_book = row.find("a", class_= "bookTitle")
+        book_title = each_book.find("span", itemprop = "name")
+        each_author = row.find("a", class_= "authorName")
+        author_name = each_author.find("span", itemprop = "name")
+        list_tuple.append((book_title.text.strip(), author_name.text.strip()))
+    
+    return list_tuple
+    
     """
     Write a function that creates a BeautifulSoup object on "search_results.htm". Parse
     through the object and return a list of tuples containing book titles (as printed on the Goodreads website) 
@@ -15,10 +36,22 @@ def get_titles_from_search_results(filename):
     [('Book title 1', 'Author 1'), ('Book title 2', 'Author 2')...]
     """
 
-    pass
-
 
 def get_search_links():
+    url = "https://www.goodreads.com/search?q=fantasy&qid=NwUsLiA2Nc"
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+
+    list_links = []
+    rows = soup.find_all("a", class_ = "bookTitle")
+
+    for row in rows: 
+        each_link = row.get('href', None)
+
+        list_links.append("https://www.goodreads.com" + each_link)
+
+    return list_links[:10]
+
     """
     Write a function that creates a BeautifulSoup object after retrieving content from
     "https://www.goodreads.com/search?q=fantasy&qid=NwUsLiA2Nc". Parse through the object and return a list of
@@ -100,23 +133,38 @@ def extra_credit(filepath):
 
 class TestCases(unittest.TestCase):
 
+    search_urls = get_search_links()
+
+    #search_urls = get_search_links()
+
     # call get_search_links() and save it to a static variable: search_urls
 
 
     def test_get_titles_from_search_results(self):
+
         # call get_titles_from_search_results() on search_results.htm and save to a local variable
+        local_variable_1 = get_titles_from_search_results("search_results.htm")
 
         # check that the number of titles extracted is correct (20 titles)
+        self.assertEqual(len(local_variable_1), 20)
 
         # check that the variable you saved after calling the function is a list
+        self.assertEqual(type(local_variable_1), list)
 
         # check that each item in the list is a tuple
+        for item in local_variable_1:
+            self.assertEqual(type(item), tuple)
 
         # check that the first book and author tuple is correct (open search_results.htm and find it)
+        self.assertEqual(local_variable_1[0][0], "Harry Potter and the Deathly Hallows (Harry Potter, #7)")
+        self.assertEqual(local_variable_1[0][1], "J.K. Rowling")
 
         # check that the last title is correct (open search_results.htm and find it)
+        self.assertEqual(local_variable_1[len(local_variable_1)-1][0], "Harry Potter: The Prequel (Harry Potter, #0.5)")
+        self.assertEqual(local_variable_1[len(local_variable_1)-1][1], "J.K. Rowling")
 
     def test_get_search_links(self):
+        pass
         # check that TestCases.search_urls is a list
 
         # check that the length of TestCases.search_urls is correct (10 URLs)
@@ -127,6 +175,7 @@ class TestCases(unittest.TestCase):
 
 
     def test_get_book_summary(self):
+        pass
         # create a local variable – summaries – a list containing the results from get_book_summary()
         # for each URL in TestCases.search_urls (should be a list of tuples)
 
@@ -144,6 +193,7 @@ class TestCases(unittest.TestCase):
 
 
     def test_summarize_best_books(self):
+        pass
         # call summarize_best_books and save it to a variable
 
         # check that we have the right number of best books (20)
@@ -158,6 +208,7 @@ class TestCases(unittest.TestCase):
 
 
     def test_write_csv(self):
+        pass
         # call get_titles_from_search_results on search_results.htm and save the result to a variable
 
         # call write csv on the variable you saved and 'test.csv'
