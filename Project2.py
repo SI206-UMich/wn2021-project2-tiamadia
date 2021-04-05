@@ -65,10 +65,19 @@ def get_search_links():
 
     """
 
-    pass
-
 
 def get_book_summary(book_url):
+
+    chosen_url = book_url
+    r = requests.get(chosen_url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+
+    book_title = soup.find("h1", id="bookTitle")
+    chosen_author = soup.find("a", class_="authorName")
+    author_name = chosen_author.find("span", itemprop="name")
+    page_num = soup.find("span", itemprop="numberOfPages")
+
+    return (book_title.text.strip(), author_name.text.strip(), int(page_num.text.strip().split(" ")[0]))
     """
     Write a function that creates a BeautifulSoup object that extracts book
     information from a book's webpage, given the URL of the book. Parse through
@@ -82,10 +91,24 @@ def get_book_summary(book_url):
     Make sure to strip() any newlines from the book title and number of pages.
     """
 
-    pass
-
-
 def summarize_best_books(filepath):
+
+    infile = open(filepath, 'r', encoding='UTF-8')
+    soup = BeautifulSoup(infile, 'html.parser')
+    infile.close()
+
+    chosen_book = soup.find_all(class_ = "category clearFix")
+    list_category = []
+
+    for book in chosen_books:
+
+        chosen_category = chosen_book.find(class_="category__copy").text.strip()
+        book_title = chosen_book.find("img", class_="category__winnerImage").get('alt', None)
+        chosen_link = chosen_book.find("a").get('href', None)
+
+        list_category.append((chosen_category, book_title, chosen_link))
+        
+    return list_category
     """
     Write a function to get a list of categories, book title and URLs from the "BEST BOOKS OF 2020"
     page in "best_books_2020.htm". This function should create a BeautifulSoup object from a 
@@ -164,32 +187,50 @@ class TestCases(unittest.TestCase):
         self.assertEqual(local_variable_1[len(local_variable_1)-1][1], "J.K. Rowling")
 
     def test_get_search_links(self):
-        pass
+
         # check that TestCases.search_urls is a list
+        self.assertEqual(type(TestCases.search_urls), list)
 
         # check that the length of TestCases.search_urls is correct (10 URLs)
-
+        self.assertEqual(len(TestCases.search_urls), 10)
 
         # check that each URL in the TestCases.search_urls is a string
-        # check that each URL contains the correct url for Goodreads.com followed by /book/show/
+        for element in TestCases.search_urls:
+            self.assertEqual(type(element), str)
 
+        # check that each URL contains the correct url for Goodreads.com followed by /book/show/
+        for element in TestCases.search_urls:
+            self.assertTrue("goodreads.com/book/show/" in element)
 
     def test_get_book_summary(self):
-        pass
-        # create a local variable – summaries – a list containing the results from get_book_summary()
+
         # for each URL in TestCases.search_urls (should be a list of tuples)
+        list_tuple = []
+        for element in TestCases.search_urls:
+            list_tuple.append(get_book_summary(element))
 
         # check that the number of book summaries is correct (10)
+        self.assertEqual(len(list_tuple), 10)            
 
-            # check that each item in the list is a tuple
+        # check that each item in the list is a tuple
+        for element in list_tuple:
+            self.assertEqual(type(element), tuple)
 
-            # check that each tuple has 3 elements
+        # check that each tuple has 3 elements
+        for element in list_tuple:
+            self.assertEqual(len(element), 3)
 
-            # check that the first two elements in the tuple are string
+        # check that the first two elements in the tuple are string
+        for element in list_tuple:
+            self.assertEqual(type(element[0]), str)
+            self.assertEqual(type(element[1]), str)
 
-            # check that the third element in the tuple, i.e. pages is an int
+        # check that the third element in the tuple, i.e. pages is an int
+        for element in list_tuple:
+            self.assertEqual(type(element[2]), int)
 
-            # check that the first book in the search has 337 pages
+        # check that the first book in the search has 337 pages
+        self.assertEqual(list_tuple[0][2], 337)
 
 
     def test_summarize_best_books(self):
